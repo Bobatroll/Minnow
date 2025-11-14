@@ -29,18 +29,43 @@ function freeCell() {
 }
 
 // question pool generation
-function generateQuestionPool(maxAnswer, size) {
+function generateQuestionPool(maxAnswer, size,operation) {
   const QA = [];
-  const usedProducts = new Set();
+  const used = new Set();
   const questionsNeeded = (size * size) - 1;
 
   // computes all possible products, but unique products.
-  for (let a = 0; a <= maxAnswer; a++) {
-    for (let b = 0; b <= maxAnswer; b++) {
-      const product = a * b;
-      if (!usedProducts.has(product)) {
-        QA.push([`What is ${a} x ${b}?`, product]);
-        usedProducts.add(product);
+  for (let a = 1; a <= maxAnswer; a++) {
+    for (let b = 1; b <= maxAnswer; b++) {
+      let answer, question;
+      switch(operation){
+        case 'addition':
+          question = `${a} + ${b}`;
+          answer = a + b;
+          break;
+        case 'subtraction':
+          question = `${a} - ${b}`;
+          answer = a - b;
+          break;
+        case 'multiplication':
+          question = `${a} x ${b}`;
+          answer = a * b;
+          
+          break;
+        case 'division':
+        if(b !== 0 && a % b === 0){
+          question = `${a} / ${b}`;
+          answer = a / b;
+          
+        } else{
+          continue;
+        }
+          break;
+      }
+    
+      if (!used.has(question)) {
+        QA.push([question, answer]);
+        used.add(question);
       }
     }
   }
@@ -56,12 +81,12 @@ function generateQuestionPool(maxAnswer, size) {
 }
 
 // Generate the full board
-function generateBoard(maxAnswer, size = 5) {
+function generateBoard(maxAnswer, size = 5,operation) {
   if (size < 5 || size % 2 === 0) {
     throw new Error('Board size must be an odd number >= 5.');
   }
 
-  const pool = generateQuestionPool(maxAnswer, size);
+  const pool = generateQuestionPool(maxAnswer, size,operation);
   const selectedQuestions = questionsForBoard(pool, size);
   const board = [];
   let qIndex = 0;
@@ -87,7 +112,7 @@ function generateBoard(maxAnswer, size = 5) {
 
 
 // The Bingo component
-export default function Bingo({ maxAnswer = 10, size = 5 }) {
+export default function Bingo({ maxAnswer = 10, size = 5,operation }) {
   const [board, setBoard] = useState([]);
   const [questionPool, setQuestionPool] = useState([]);
   const[currentQuestion, setCurrentQuestion] = useState(null);
@@ -98,15 +123,15 @@ export default function Bingo({ maxAnswer = 10, size = 5 }) {
   const[gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
-    const newBoard = generateBoard(maxAnswer, size);
-    const pool = generateQuestionPool(maxAnswer, size);
+    const newBoard = generateBoard(maxAnswer, size,operation);
+    const pool = generateQuestionPool(maxAnswer, size,operation);
     setBoard(newBoard);
     setQuestionPool(pool);
-  }, [maxAnswer, size]);
+  }, [maxAnswer, size,operation]);
 
   function startGame(){
-    const newBoard = generateBoard(maxAnswer, size);
-    const pool = generateQuestionPool(maxAnswer, size);
+    const newBoard = generateBoard(maxAnswer, size,operation);
+    const pool = generateQuestionPool(maxAnswer, size,operation);
     setBoard(newBoard);
     setQuestionPool(pool);
     setCurrentQuestion(null);
