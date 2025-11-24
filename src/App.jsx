@@ -3,14 +3,16 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
-import Bingo from './bingo/Bingo';
+import BingoGame from './bingo/BingoGame';
+
 
 function App() {
   return (
     <div>
-      <Bingo maxAnswer={10} size={5} />
+      <BingoGame />
     </div>
   );
 }
 
 export default App;
+

@@ -32,6 +32,7 @@ function freeCell() {
 function generateQuestionPool(maxAnswer, size,operation) {
   const QA = [];
   const used = new Set();
+  const usedAnswers = new Set();
   const questionsNeeded = (size * size) - 1;
 
   // computes all possible products, but unique products.
@@ -53,19 +54,23 @@ function generateQuestionPool(maxAnswer, size,operation) {
           
           break;
         case 'division':
-        if(b !== 0 && a % b === 0){
-          question = `${a} / ${b}`;
-          answer = a / b;
-          
-        } else{
+  if(b !== 0 && a % b === 0){
+let a = Math.floor(Math.random() * 35)+1;
+let b =  Math.floor(Math.random() * 35)+1;
+let temp = a * b;
+
+question = `${temp} / ${b} `;
+answer = a;
+        }else{
           continue;
         }
           break;
       }
     
-      if (!used.has(question)) {
+      if (!used.has(question) && !usedAnswers.has(answer)) {
         QA.push([question, answer]);
         used.add(question);
+        usedAnswers.add(answer);
       }
     }
   }
@@ -112,7 +117,7 @@ function generateBoard(maxAnswer, size = 5,operation) {
 
 
 // The Bingo component
-export default function Bingo({ maxAnswer = 10, size = 5,operation }) {
+export default function Bingo({ maxAnswer = 10, size = 5,operation, difficulty}) {
   const [board, setBoard] = useState([]);
   const [questionPool, setQuestionPool] = useState([]);
   const[currentQuestion, setCurrentQuestion] = useState(null);
@@ -121,7 +126,18 @@ export default function Bingo({ maxAnswer = 10, size = 5,operation }) {
   const [score,setScore] = useState(0);
   const[gameActive, setGameActive] = useState(false);
   const[gameOver, setGameOver] = useState(false);
-
+  const[turn,setTurn] = useState("player")
+  const[cpuQuestion, setCpuQuestion] = useState(null)
+  const[cpuTimeLeft,setCpuTimeLeft] = useState(0)
+  const [cpuBoard, setCpuBoard] = useState([]);
+  const [cpuThinkTime,setCpuThinkTime] = useState(0)
+  const[cpuPool,setCpuPool] = useState([]);
+    const difficultyCPUTime = {
+      easy:8,
+      medium : 5,
+      hard : 3
+    }
+  
   useEffect(() => {
     const newBoard = generateBoard(maxAnswer, size,operation);
     const pool = generateQuestionPool(maxAnswer, size,operation);
@@ -131,36 +147,40 @@ export default function Bingo({ maxAnswer = 10, size = 5,operation }) {
 
   function startGame(){
     const newBoard = generateBoard(maxAnswer, size,operation);
+    const newCpuBoard =  generateBoard(maxAnswer, size,operation);
     const pool = generateQuestionPool(maxAnswer, size,operation);
+    const cpuPool = [...pool];
+
+    const cpuTime = difficultyCPUTime[difficulty] || 5;
+    
+    setCpuThinkTime(cpuTime);
     setBoard(newBoard);
+    setCpuBoard(newCpuBoard);
     setQuestionPool(pool);
+    setCpuPool(cpuPool);
     setCurrentQuestion(null);
     setUserAnswer('');
     setScore(0);
     setTimeLeft(10);
     setGameOver(false);
     setGameActive(true);
-
+setTurn("player");
     startTurn();
   }
-function startTurn(){
+function startTurn() {
+  if (questionPool.length === 0 || gameOver) return;
 
-  //if the question pool is empty, return
-  if(questionPool.length == 0 || gameOver){
-    return;
-  }
-//randex is a random index # based off the length of questionpool. 
-//nextQ is a random question from questionpool using randex.
-  const randex = Math.floor(Math.random()* questionPool.length);
+  const randex = Math.floor(Math.random() * questionPool.length);
   const nextQ = questionPool[randex];
 
+  const updated = [...questionPool];
+  updated.splice(randex, 1);
 
-  const updatePool = [...questionPool];
-  updatePool.splice(randex, 1);
-  setQuestionPool(updatePool);
+  setQuestionPool(updated);
   setCurrentQuestion(nextQ);
   setTimeLeft(10);
 }
+
 
 useEffect(() => {
   if(!currentQuestion) return;
@@ -214,7 +234,8 @@ function handleSubmit() {
   }
 
   setUserAnswer('');
-  startTurn();
+  setTurn("cpu");
+  startCPUTurn();
 }
 
 
@@ -299,8 +320,10 @@ function calculateScore(answer, timeLeft, maxTime = 10){
           <button onClick = {startGame}>Start Game</button>
         )}
 
-      { currentQuestion && (
+
+      {turn === 'player' && currentQuestion && (
         <div className = "question-box">
+           <p>Player's Turn</p>
           <p>{currentQuestion[0]}</p>
           <p> Time left: {timeLeft}s </p>
           <input 
@@ -312,8 +335,22 @@ function calculateScore(answer, timeLeft, maxTime = 10){
         <button onClick = {handleSubmit}> Submit</button>
         </div>
       )}
+      {turn === 'cpu' && cpuQuestion && (
+        <div className = "cpu-question-box">
+          <p>Computer's Turn</p>
+          <p>{cpuQuestion[0]}</p>
+          <p> Time Left: {cpuTimeLeft}</p>
+          <input type = "text"
+          value = {userAnswer}
+          onChange = { e => setUserAnswer(e.target.value)}
+          placeholder = "Interrupt Answer"
+          />
 
-      <p>Score: {score} </p>
+          <button onClick = {playerSteal}>Steal!</button>
+          </div>
+      )}
+      <p>Player's Score: {score} </p>
+      <p>Player's Board</p>
       </div>
       {/* Bingo Board Display */ }
       {board.map((row, rIndex) => (
@@ -328,6 +365,90 @@ function calculateScore(answer, timeLeft, maxTime = 10){
           ))}
         </div>
       ))}
+  
+<p>Computer's Board</p>
+  {/* Cpu Board Display */}
+      {cpuBoard.map((row, rIndex) => (
+        <div key={rIndex} className="bingo-row">
+          {row.map((cell, cIndex) => (
+            <div
+              key={cIndex}
+               className={`bingo-cell ${cell.marked ? 'marked' : ''}`}
+            >
+              {cell.answer !== null ? cell.answer : cell.question}
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
+function startCPUTurn() {
+  if (cpuPool.length === 0 || gameOver) return;
+
+  const rand = Math.floor(Math.random() * cpuPool.length);
+  const next = cpuPool[rand];
+
+  const updated = [...cpuPool];
+  updated.splice(rand, 1);
+  setCpuPool(updated);
+
+  setCpuQuestion(next);
+  setCpuTimeLeft(cpuThinkTime);
+
+  const timer = setInterval(() => {
+    setCpuTimeLeft(t => {
+      if (t <= 1) {
+        clearInterval(timer);
+        cpuFinishTurn(next);
+      }
+      return t - 1;
+    });
+  }, 1000);
+}
+
+
+function playerSteal(){
+  if(turn !== "cpu") 
+    return;
+
+  const playerAns = parseInt(userAnswer);
+  const correctAns = cpuQuestion[1];
+
+
+  if(playerAns === correctAns){
+    setCpuQuestion(null);
+    setTurn("player");
+    startTurn();
+  }
+  setUserAnswer('');
+}
+function cpuFinishTurn(question) {
+  if (turn !== "cpu") return;  // player might have interrupted
+
+  const correctAns = question[1];
+
+  setCpuBoard(prev => {
+    const newBoard = prev.map(row => row.map(cell => {
+        if (cell.answer === correctAns) {
+          return { ...cell, marked: true };
+        }
+        return cell;
+      })
+    );
+    //check to see if computer won. 
+    if (checkWin(newBoard)) {
+      alert("CPU wins!");
+      setGameOver(true);
+    }
+
+    return newBoard;
+  });
+
+  // clear CPU question UI
+  setCpuQuestion(null);
+
+  // back to player's turn
+  setTurn("player");
+  startTurn();
+}
 }

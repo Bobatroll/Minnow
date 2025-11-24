@@ -22,6 +22,7 @@ export default function BingoGame() {
           maxAnswer={gameSettings.maxAnswer} 
           size={5} 
           operation={gameSettings.operation}
+          difficulty={gameSettings.difficulty}
           onExit={handleBackToMenu}
         />
       )}
@@ -32,6 +33,7 @@ export default function BingoGame() {
 function CreateGameScreen({ onStart }) {
   const [operation, setOperation] = useState('multiplication');
   const [difficulty, setDifficulty] = useState('medium');
+  const [customMax,setCustomMax] = useState(10);
 
   const difficultyMap = {
     easy: 10,
@@ -40,9 +42,12 @@ function CreateGameScreen({ onStart }) {
   };
 
   function handleStartClick() {
+     const maxAnswer = difficulty === 'custom' ? Number(customMax) : difficultyMap[difficulty];
     const settings = {
+     
       operation,
-      maxAnswer: difficultyMap[difficulty]
+      maxAnswer,
+      difficulty
     };
     onStart(settings);
   }
@@ -68,7 +73,16 @@ function CreateGameScreen({ onStart }) {
           <option value="medium">Medium (1–15)</option>
           <option value="hard">Hard (1–20)</option>
           <option value= "custom">Custom</option>
-        </select>
+           </select>
+          {difficulty === 'custom' && (
+            <input type ="number"
+            min ="1"
+            value = {customMax}
+            onChange = {e => setCustomMax(e.target.value)}
+            placeholder = "Enter max Number"
+            />
+          )}
+       
       </div>
 
       <button onClick={handleStartClick}>Start Game</button>
