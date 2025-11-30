@@ -1,11 +1,14 @@
 import { useState } from 'react';
+
 import Bingo from './Bingo';
+
 import './BingoStyle.css';
 
 export default function BingoGame() {
   const [gameSettings, setGameSettings] = useState(null);
 
   function handleStart(settings) {
+    
     setGameSettings(settings);
   }
 //sets the settings to null and goes back to Menu screen 
@@ -36,9 +39,9 @@ function CreateGameScreen({ onStart }) {
   const [customMax,setCustomMax] = useState(10);
 
   const difficultyMap = {
-    easy: 10,
-    medium: 15,
-    hard: 20
+    easy: 15,
+    medium: 20,
+    hard: 25
   };
 
   function handleStartClick() {
@@ -66,12 +69,12 @@ function CreateGameScreen({ onStart }) {
         </select>
       </div>
 
-      <div className="option-group">
+      <div className="option-group2">
         <label>Difficulty:</label>
         <select value={difficulty} onChange={e => setDifficulty(e.target.value)}>
-          <option value="easy">Easy (1–10)</option>
-          <option value="medium">Medium (1–15)</option>
-          <option value="hard">Hard (1–20)</option>
+          <option value="easy">Easy </option>
+          <option value="medium">Medium </option>
+          <option value="hard">Hard</option>
           <option value= "custom">Custom</option>
            </select>
           {difficulty === 'custom' && (

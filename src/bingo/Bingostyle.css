@@ -1,45 +1,71 @@
-.bingo-container{
-    display:flex;
-    flex-direction : column;
-    align-items : center;
-    margin-top: 20px;
+.bingo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height:100vh;
 }
 
-.bingo-title {
-    font-size : 24px;
-    font-weight : bold;
-    margin-bottom : 10px;
-    text-align: center;
+.boards-container {
+  display: flex;
+  gap: 40px; /* space between boards */
+  margin-top: 20px;
 }
 
-.bingo-row{
-    display: flex;
+.player-board, .cpu-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bingo-row {
+  display: flex;
 }
 
 .bingo-cell {
-    display:flex;
+  width: 50px;
+  height: 50px;
+  border: 1px solid #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2px;
 }
 
-.bingo-cell{
-    border: 1px solid black;
-    width: 100px;
-    height: 100px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 2px;
-    color: #000000;
-    font-weight : bold;
-    background-color : #39cef3e6;
-    transition : all 0.2s ease-in-out;
-    cursor : pointer;
+.marked {
+  background-color: lightgreen;
 }
 
-.bingo-cell.marked{
-    background-color : rgba(170,255,184,1);
+.wrong {
+  background-color: lightcoral;
 }
 
 .bingo-cell.wrong{
     background-color: red;
     color: white;
 }
+.create-game{
+    align-items: center;
+    display:flex;
+}
+.game-wrapper {
+  display: flex;
+  flex-direction: column;       /* stack menu or bingo vertically */
+  justify-content: center;      /* vertical centering */
+  align-items: center;          /* horizontal centering */
+  min-height: calc(100vh - 200px); /* leave space for your site header/footer */
+  padding: 20px;
+  text-align: center;
+
+}
+.option-group{
+    align-items: center;
+       display:flex;
+       flex-direction:column;
+       gap: 5px;
+    
+}
+.option-group2{
+        align-items: center;
+
+}
+
